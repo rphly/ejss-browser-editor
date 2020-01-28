@@ -1,13 +1,14 @@
 import React from 'react';
-import logo from './logo.svg';
 import './App.css';
+import Frame from './containers/skeleton/Frame'
+import { Flow } from './containers/index'
 
 function App() {
   return (
     <div className="App">
-      <header className="App-header">
-        Hello world
-      </header>
+        <Frame>
+          <Flow/>
+        </Frame>
     </div>
   );
 }
