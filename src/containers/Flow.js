@@ -23,11 +23,10 @@ export default class Flow extends Component {
   onSubmit = () => {
     this.setState({
       isLoading: true,
-		})
-		console.log(this.state.url.replace('https://iwant2study.org', ''))
+    })
 
     axios
-      .get(this.state.url.replace('https://iwant2study.org', ''))
+      .get(this.state.url)
       .then(res => {
         if (res.headers['content-type'] === 'text/html') {
           this.setState({

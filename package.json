@@ -2,7 +2,6 @@
   "name": "sim-editor",
   "version": "0.1.0",
   "private": true,
-  "proxy":"https://iwant2study.org",
   "dependencies": {
     "@testing-library/jest-dom": "^4.2.4",
     "@testing-library/react": "^9.4.0",
