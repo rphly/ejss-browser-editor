@@ -1,5 +1,3 @@
 import Flow from './Flow'
 
-export {
-    Flow
-}
+export { Flow }
