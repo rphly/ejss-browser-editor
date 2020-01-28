@@ -27,7 +27,7 @@ export default class Frame extends Component {
                     background: "white",
                     fontSize: 10
                 }}>
-                    <a target="_blank" rel="noopener noreferrer" href="https://github.com/rphly/ejjs-browser-editor">Contribute</a>
+                    <a target="_blank" rel="noopener noreferrer" href="https://github.com/rphly/ejss-browser-editor">Contribute</a>
                 </Footer>
             </Layout>
         )
