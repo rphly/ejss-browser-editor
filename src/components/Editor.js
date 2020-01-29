@@ -35,6 +35,8 @@ export default class Editor extends Component {
       isSaved: true,
       doc: doc,
     })
+
+    console.log(doc)
   }
 
   onOkEditor = () => {
@@ -45,7 +47,7 @@ export default class Editor extends Component {
     const docBlob = new Blob([doc])
 
     // just generate index.html - weehee, update old sims!
-    zip.file(`${folderName.split('.')[0]}/index.html`, docBlob)
+    zip.file(`index.html`, docBlob)
 
     // find name of file
     try {
