@@ -71,7 +71,7 @@ export default class Editor extends Component {
       var title = doc.match(/<title>(.*?)<\/title>/)[1] || 'undefined title'
 
       // look for variables
-      var re = /\/\/\sEjsS\sModel\.Variables\.teachereditsanswershere.(\S+)/gm
+      var re = /\/\/\sEjsS\sModel\.Variables\.(?:teachereditsanswershere|EditableVariable).(\S+)/gm
       var match,
         results = []
 
