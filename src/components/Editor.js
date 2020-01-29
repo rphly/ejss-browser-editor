@@ -1,6 +1,7 @@
 import React, { Component } from 'react'
 import _ from 'lodash'
 import { Input, Button, Alert, Modal } from 'antd'
+import { saveAs } from 'file-saver';
 
 export default class Editor extends Component {
   constructor(props) {
@@ -37,15 +38,29 @@ export default class Editor extends Component {
   }
 
   onOkEditor = () => {
-    // download html
+    // this function replaces xhtml / index in zip file and preps for download
     const { doc } = this.state
-    console.log('Download document')
-    const url = window.URL.createObjectURL(new Blob([doc]))
-    const link = document.createElement('a')
-    link.href = url
-    link.setAttribute('download', 'index.html')
-    document.body.appendChild(link)
-    link.click()
+    const { zip, folderName} = this.props
+    
+    const docBlob = new Blob([doc])
+
+    // just generate index.html - weehee, update old sims!
+    zip.file("index.html", docBlob)
+
+    // find name of file
+    try {
+      const name = zip.file(/^(\S+_Simulation\.xhtml)$/)[0].name
+      // rewrite Sim file
+      zip.file(name, docBlob)
+    } catch {
+      // might not exist, grab name from ejss file.
+      const name = zip.file(/^(\S+\.ejss)$/)[0].name
+      zip.file(`${name.split(".")[0]}_Simulation.xhtml`, docBlob)
+    }
+
+    zip.generateAsync({ type: "blob" }).then((blob) => {
+      saveAs(blob, `${folderName}`)
+    })
 
     this.props.toggleEditor()
   }

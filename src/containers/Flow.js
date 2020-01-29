@@ -1,8 +1,9 @@
 import React, { Component } from 'react'
 import _ from 'lodash'
-import { Input, Button, Spin, Modal } from 'antd'
+import { Input, Button, Spin, Upload, Icon, message } from 'antd'
 import axios from 'axios'
 import Editor from '../components/Editor'
+import JSZip from "jszip"
 
 export default class Flow extends Component {
   constructor(props) {
@@ -20,28 +21,56 @@ export default class Flow extends Component {
       [e.target.name]: e.target.value,
     })
 
-  onSubmit = () => {
+  onUpload = (e) => {
+    var rawData = e.target.files[0]
     this.setState({
       isLoading: true,
+      folderName: rawData.name
     })
-
-    axios
-      .get(this.state.url)
-      .then(res => {
-        if (res.headers['content-type'] === 'text/html') {
+    var zip = new JSZip();
+    zip.loadAsync(rawData)
+    .then((zip) => {
+      /* check for valid document files 
+        We check for *_Simulation.xhtml because of legacy reasons.
+        index.html and *_Simulation.xhtml are identical.
+        Therefore, we search for either and generate both to replace the existing files.
+      */
+      var xhtmlSimFile = zip.file(/^(\S+_Simulation\.xhtml)$/)
+      if (xhtmlSimFile.length > 0) {
+        console.log("simxHtml found")
+        console.log(xhtmlSimFile)
+        xhtmlSimFile[0].async("string").then((s) => {
           this.setState({
-            isLoading: false,
-            showEditor: true,
-            doc: res.data,
+            doc: s
           })
-        } else {
-        }
-      })
-      .catch(e => {
-        this.setState({
-          isLoading: false,
         })
+      } else {
+        console.log("simxHtml not found... checking for index.html")
+        zip.file("index.html").then((s) => {
+          console.log("index.html found")
+          this.setState({
+            doc: s
+          })
+        })
+      }
+
+      this.setState({
+        isLoading: false,
+        zip: zip
       })
+    })
+    .catch( e => (
+      this.setState({
+        isLoading: false,
+        showError: true
+      })
+    )) 
+  }
+
+  onSubmit = () => {
+    this.setState({
+      showEditor: true,
+    })
   }
 
   toggleEditor = () =>
@@ -51,9 +80,9 @@ export default class Flow extends Component {
     })
 
   render() {
-    var { url, isLoading, showEditor, doc } = this.state
-    const disabled = _.isEmpty(url)
-    console.log(doc)
+    var { isLoading, showEditor, doc, showError, zip, folderName } = this.state
+    const disabled = _.isNull(doc)
+    const errorMessage = <span style={{color: `red`}}>Error retrieving source files.</span>
     return (
       <div
         style={{
@@ -73,11 +102,23 @@ export default class Flow extends Component {
               width: `50vw`,
             }}
           >
-            <Input
+            {/* <Input
               name="url"
               onChange={this.onChange}
               placeholder={`Insert url here`}
               value={url}
+              autoComplete="off"
+            />
+            */}
+            {showError ? errorMessage : null}
+
+            <Input 
+              style={{
+                marginTop: 20
+              }}
+              type="file"
+              accept=".zip"
+              onChange={this.onUpload.bind(this)}
             />
           </div>
 
@@ -96,6 +137,8 @@ export default class Flow extends Component {
               showEditor={showEditor}
               toggleEditor={this.toggleEditor}
               doc={doc}
+              zip={zip}
+              folderName={folderName}
             />
           ) : null}
         </Spin>
