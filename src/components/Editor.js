@@ -25,7 +25,7 @@ export default class Editor extends Component {
       if (!_.isUndefined(value)) {
         // search and replace
         var re = new RegExp(
-          `(${varName}\\s=\\s)([a-zA-Z0-9]+)(;\\s\\/\\/\\sEjsS\\sModel\\.Variables\\.teachereditsanswershere)`
+          `(${varName}\\s=\\s)([a-zA-Z0-9]+)(;\\s\\/\\/\\sEjsS\\sModel\\.Variables\\.(?:teachereditsanswershere|EditableVariable))`
         ) // regex to search for variable name to be replaced in xhtml
         var res = doc.replace(re, `$1${value}$3`)
         doc = res
@@ -45,7 +45,7 @@ export default class Editor extends Component {
     const docBlob = new Blob([doc])
 
     // just generate index.html - weehee, update old sims!
-    zip.file("index.html", docBlob)
+    zip.file(`${folderName.split('.')[0]}/index.html`, docBlob)
 
     // find name of file
     try {
