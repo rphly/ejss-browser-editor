@@ -5,7 +5,7 @@ import axios from 'axios'
 import Editor from '../components/Editor'
 import JSZip from "jszip"
 
-export default class Flow extends Component {
+export default class Home extends Component {
   constructor(props) {
     super()
 

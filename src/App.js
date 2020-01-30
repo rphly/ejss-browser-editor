@@ -1,14 +1,14 @@
 import React from 'react';
 import './App.css';
-import Frame from './containers/skeleton/Frame'
-import { Flow } from './containers/index'
+import Layout from './containers/common/Layout'
+import { Home } from './containers/index'
 
 function App() {
   return (
     <div className="App">
-        <Frame>
-          <Flow/>
-        </Frame>
+        <Layout>
+          <Home/>
+        </Layout>
     </div>
   );
 }
