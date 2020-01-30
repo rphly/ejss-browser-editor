@@ -2,8 +2,10 @@ import React, { Component } from 'react'
 import _ from 'lodash'
 import { Input, Button, Alert, Modal } from 'antd'
 import { saveAs } from 'file-saver';
+import { EDITABLE_VARIABLES_REGEX } from "../utils/constants"
 
 export default class Editor extends Component {
+  // TODO: spin this out into a route /editor/{simId}
   constructor(props) {
     super()
     this.state = this.setModalMeta(props.doc)
@@ -25,9 +27,9 @@ export default class Editor extends Component {
       if (!_.isUndefined(value)) {
         // search and replace
         var re = new RegExp(
-          `(${varName}\\s=\\s)([a-zA-Z0-9]+)(;\\s\\/\\/\\sEjsS\\sModel\\.Variables\\.(?:teachereditsanswershere|EditableVariable))`
+          `(${varName}${EDITABLE_VARIABLES_REGEX}`
         ) // regex to search for variable name to be replaced in xhtml
-        var res = doc.replace(re, `$1${value}$3`)
+        var res = doc.replace(re, `$1${value}$3$4`)
         doc = res
       }
     }
@@ -73,14 +75,20 @@ export default class Editor extends Component {
       var title = doc.match(/<title>(.*?)<\/title>/)[1] || 'undefined title'
 
       // look for variables
-      var re = /\/\/\sEjsS\sModel\.Variables\.(?:teachereditsanswershere|EditableVariable).(\S+)/gm
+      var re = new RegExp(
+        `(${EDITABLE_VARIABLES_REGEX}`,
+        "gm"
+      )
+      console.log(`(${EDITABLE_VARIABLES_REGEX}`)
+      
       var match,
         results = []
 
       // find variables and update state
       while ((match = re.exec(doc))) {
-        if (!results.includes(match[1])) {
-          results.push(match[1])
+        console.log(match)
+        if (!results.includes(match[4])) {
+          results.push(match[4])
         }
       }
 
