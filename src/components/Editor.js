@@ -128,13 +128,17 @@ export default class Editor extends Component {
         ) : null}
 
         <h2>{title}</h2>
-
+        
+        <div style={{
+          maxHeight: 500,
+          overflowY: `scroll`
+        }}>
         {variables && variables.length > 0 ? (
           variables.map((v, i) => {
             return (
               <div
                 style={{
-                  marginBottom: 20,
+                  marginBottom: 20
                 }}
                 key={i}
               >
@@ -150,6 +154,7 @@ export default class Editor extends Component {
         ) : (
           <div>No editable variables found.</div>
         )}
+        </div>
         <Button
           style={{
             marginTop: 10,
