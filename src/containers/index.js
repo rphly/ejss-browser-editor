@@ -1,3 +1,3 @@
-import Flow from './Flow'
+import Home from './Home'
 
-export { Flow }
+export { Home }

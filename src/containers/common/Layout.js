@@ -2,7 +2,7 @@ import React, { Component } from 'react'
 import { Layout } from 'antd'
 const { Header, Footer, Content } = Layout
 
-export default class Frame extends Component {
+export default class CommonLayout extends Component {
     constructor(props) {
         super()
     }
