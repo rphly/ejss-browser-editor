@@ -1,94 +1,87 @@
-import React, { Component } from 'react'
-import _ from 'lodash'
-import { Input, Button, Alert, Modal } from 'antd'
-import { saveAs } from 'file-saver';
-import { EDITABLE_VARIABLES_REGEX } from "../utils/constants"
+import React, { Component } from "react";
+import _ from "lodash";
+import { Input, Button, Alert, Modal } from "antd";
+import { saveAs } from "file-saver";
+import { EDITABLE_VARIABLES_REGEX } from "../utils/constants";
 
 export default class Editor extends Component {
   // TODO: spin this out into a route /editor/{simId}
   constructor(props) {
-    super()
-    this.state = this.setModalMeta(props.doc)
+    super();
+    this.state = this.setModalMeta(props.doc);
   }
 
   onChange = e => {
     this.setState({
-      [e.target.name]: e.target.value,
-    })
-  }
+      [e.target.name]: e.target.value
+    });
+  };
 
   onSave = () => {
     // retrieve doc
-    const { variables } = this.state
-    var doc = this.state.doc
+    const { variables } = this.state;
+    var doc = this.state.doc;
     for (var i = 0; i < variables.length; i++) {
-      const varName = variables[i]
-      const value = this.state[`variable_${varName}`]
+      const varName = variables[i];
+      const value = this.state[`variable_${varName}`];
       if (!_.isUndefined(value)) {
         // search and replace
-        var re = new RegExp(
-          `(${varName}${EDITABLE_VARIABLES_REGEX}`
-        ) // regex to search for variable name to be replaced in xhtml
-        var res = doc.replace(re, `$1${value}$3$4`)
-        doc = res
+        var re = new RegExp(`(${varName}${EDITABLE_VARIABLES_REGEX}`); // regex to search for variable name to be replaced in xhtml
+        var res = doc.replace(re, `$1${value}$3$4`);
+        doc = res;
       }
     }
     this.setState({
       isSaved: true,
-      doc: doc,
-    })
-
-    console.log(doc)
-  }
+      doc: doc
+    });
+  };
 
   onOkEditor = () => {
     // this function replaces xhtml / index in zip file and preps for download
-    const { doc } = this.state
-    const { zip, folderName} = this.props
-    
-    const docBlob = new Blob([doc])
+    const { doc } = this.state;
+    const { zip, folderName } = this.props;
+
+    const docBlob = new Blob([doc]);
 
     // just generate index.html - weehee, update old sims!
-    zip.file(`index.html`, docBlob)
+    zip.file(`index.html`, docBlob);
 
     // find name of file
     try {
-      const name = zip.file(/^(\S+_Simulation\.xhtml)$/)[0].name
+      const name = zip.file(/^(\S+_Simulation\.xhtml)$/)[0].name;
       // rewrite Sim file
-      zip.file(name, docBlob)
+      zip.file(name, docBlob);
     } catch {
       // might not exist, grab name from ejss file.
-      const name = zip.file(/^(\S+\.ejss)$/)[0].name
-      zip.file(`${name.split(".")[0]}_Simulation.xhtml`, docBlob)
+      const name = zip.file(/^(\S+\.ejss)$/)[0].name;
+      zip.file(`${name.split(".")[0]}_Simulation.xhtml`, docBlob);
     }
 
-    zip.generateAsync({ type: "blob" }).then((blob) => {
-      saveAs(blob, `${folderName}`)
-    })
+    zip.generateAsync({ type: "blob" }).then(blob => {
+      saveAs(blob, `${folderName}`);
+    });
 
-    this.props.toggleEditor()
-  }
+    this.props.toggleEditor();
+  };
 
   setModalMeta(doc) {
     if (!_.isNull(doc)) {
       // parse html
-      var title = doc.match(/<title>(.*?)<\/title>/)[1] || 'undefined title'
+      var title = doc.match(/<title>(.*?)<\/title>/)[1] || "undefined title";
 
       // look for variables
-      var re = new RegExp(
-        `(${EDITABLE_VARIABLES_REGEX}`,
-        "gm"
-      )
-      console.log(`(${EDITABLE_VARIABLES_REGEX}`)
-      
+      var re = new RegExp(`(${EDITABLE_VARIABLES_REGEX}`, "gm");
+      console.log(`(${EDITABLE_VARIABLES_REGEX}`);
+
       var match,
-        results = []
+        results = [];
 
       // find variables and update state
       while ((match = re.exec(doc))) {
-        console.log(match)
+        console.log(match);
         if (!results.includes(match[4])) {
-          results.push(match[4])
+          results.push(match[4]);
         }
       }
 
@@ -96,19 +89,19 @@ export default class Editor extends Component {
         variables: results,
         title: title,
         doc: doc,
-        isSaved: false,
-      }
+        isSaved: false
+      };
     }
   }
 
   componentWillReceiveProps() {
-    this.setModalMeta(this.props.doc)
+    this.setModalMeta(this.props.doc);
   }
 
   render() {
-    const { variables, isSaved, title } = this.state
-    const { toggleEditor, showEditor } = this.props
-    const disabled = _.isEmpty(variables)
+    const { variables, isSaved, title } = this.state;
+    const { toggleEditor, showEditor } = this.props;
+    const disabled = _.isEmpty(variables);
     return (
       <Modal
         title="Edit variables"
@@ -120,7 +113,7 @@ export default class Editor extends Component {
         {isSaved ? (
           <Alert
             style={{
-              marginBottom: 10,
+              marginBottom: 10
             }}
             message="Variables have been rewritten."
             type="success"
@@ -128,36 +121,38 @@ export default class Editor extends Component {
         ) : null}
 
         <h2>{title}</h2>
-        
-        <div style={{
-          maxHeight: 500,
-          overflowY: `scroll`
-        }}>
-        {variables && variables.length > 0 ? (
-          variables.map((v, i) => {
-            return (
-              <div
-                style={{
-                  marginBottom: 20
-                }}
-                key={i}
-              >
-                <code>{v}</code>
-                <Input
-                  name={`variable_${v}`}
-                  value={this.state[`variable_${v}`]}
-                  onChange={this.onChange}
-                />
-              </div>
-            )
-          })
-        ) : (
-          <div>No editable variables found.</div>
-        )}
+
+        <div
+          style={{
+            maxHeight: 500,
+            overflowY: `scroll`
+          }}
+        >
+          {variables && variables.length > 0 ? (
+            variables.map((v, i) => {
+              return (
+                <div
+                  style={{
+                    marginBottom: 20
+                  }}
+                  key={i}
+                >
+                  <code>{v}</code>
+                  <Input
+                    name={`variable_${v}`}
+                    value={this.state[`variable_${v}`]}
+                    onChange={this.onChange}
+                  />
+                </div>
+              );
+            })
+          ) : (
+            <div>No editable variables found.</div>
+          )}
         </div>
         <Button
           style={{
-            marginTop: 10,
+            marginTop: 10
           }}
           disabled={disabled}
           onClick={this.onSave}
@@ -165,6 +160,6 @@ export default class Editor extends Component {
           Save
         </Button>
       </Modal>
-    )
+    );
   }
 }
