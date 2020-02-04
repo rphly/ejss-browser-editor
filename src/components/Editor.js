@@ -165,7 +165,7 @@ export default class Editor extends Component {
             style={{
               marginBottom: 10
             }}
-            message="Variables have been rewritten."
+            message="Model has been rewritten."
             type="success"
           />
         ) : null}
