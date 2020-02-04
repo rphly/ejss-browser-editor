@@ -1,8 +1,12 @@
 import React, { Component } from "react";
 import _ from "lodash";
-import { Input, Button, Alert, Modal } from "antd";
+import { Input, Button, Alert, Modal, Tabs } from "antd";
 import { saveAs } from "file-saver";
-import { EDITABLE_VARIABLES_REGEX } from "../utils/constants";
+import {
+  EDITABLE_VARIABLES_REGEX,
+  EDITABLE_FUNCTIONS_REGEX
+} from "../utils/constants";
+const { TabPane } = Tabs;
 
 export default class Editor extends Component {
   // TODO: spin this out into a route /editor/{simId}
@@ -19,22 +23,45 @@ export default class Editor extends Component {
 
   onSave = () => {
     // retrieve doc
-    const { variables } = this.state;
+    const { variables, functions } = this.state;
     var doc = this.state.doc;
     for (var i = 0; i < variables.length; i++) {
-      const varName = variables[i];
+      const varName = variables[i].name;
       const value = this.state[`variable_${varName}`];
       if (!_.isUndefined(value)) {
         // search and replace
-        var re = new RegExp(`(${varName}${EDITABLE_VARIABLES_REGEX}`); // regex to search for variable name to be replaced in xhtml
+        var re = new RegExp(
+          `${EDITABLE_VARIABLES_REGEX.replace("[a-zA-Z]+", varName)}`
+        ); // regex to search for variable name to be replaced in xhtml
         var res = doc.replace(re, `$1${value}$3$4`);
         doc = res;
       }
     }
+
+    for (var i = 0; i < functions.length; i++) {
+      const funcName = functions[i].name;
+      const value = this.state[`function_${funcName}`];
+      if (!_.isUndefined(value)) {
+        console.log(`${value}`);
+        // search and replace
+        var re = new RegExp(
+          `${EDITABLE_FUNCTIONS_REGEX.replace(`[a-zA-Z]+`, funcName)}`
+        ); // regex to search for function name to be replaced in xhtml
+        var res = doc.replace(
+          re,
+          `function $1$2 ${JSON.stringify(value)
+            .replace(/\\n/g, "\n ")
+            .slice(1, -1)}\n$4`
+        );
+        doc = res;
+      }
+    }
+
     this.setState({
       isSaved: true,
       doc: doc
     });
+    console.log(doc);
   };
 
   onOkEditor = () => {
@@ -61,8 +88,6 @@ export default class Editor extends Component {
     zip.generateAsync({ type: "blob" }).then(blob => {
       saveAs(blob, `${folderName}`);
     });
-
-    this.props.toggleEditor();
   };
 
   setModalMeta(doc) {
@@ -71,22 +96,45 @@ export default class Editor extends Component {
       var title = doc.match(/<title>(.*?)<\/title>/)[1] || "undefined title";
 
       // look for variables
-      var re = new RegExp(`(${EDITABLE_VARIABLES_REGEX}`, "gm");
-      console.log(`(${EDITABLE_VARIABLES_REGEX}`);
+      var re = new RegExp(`${EDITABLE_VARIABLES_REGEX}`, "gm");
 
       var match,
-        results = [];
+        variables = [];
+
+      console.log(doc);
 
       // find variables and update state
       while ((match = re.exec(doc))) {
         console.log(match);
-        if (!results.includes(match[4])) {
-          results.push(match[4]);
+        if (!variables.includes(match[4])) {
+          const variable = {
+            name: match[4],
+            value: match[2]
+          };
+          variables.push(variable);
+        }
+      }
+
+      var re = new RegExp(`${EDITABLE_FUNCTIONS_REGEX}`, "gm");
+
+      var match,
+        functions = [];
+
+      // find variables and update state
+      while ((match = re.exec(doc))) {
+        console.log(match);
+        if (!functions.includes(match[1])) {
+          const func = {
+            name: match[1],
+            body: match[3]
+          };
+          functions.push(func);
         }
       }
 
       return {
-        variables: results,
+        variables: variables,
+        functions: functions,
         title: title,
         doc: doc,
         isSaved: false
@@ -99,13 +147,15 @@ export default class Editor extends Component {
   }
 
   render() {
-    const { variables, isSaved, title } = this.state;
+    const { variables, isSaved, title, functions } = this.state;
     const { toggleEditor, showEditor } = this.props;
-    const disabled = _.isEmpty(variables);
+    const disabledSave = _.isEmpty(variables);
+    const disabledDownload = isSaved === false;
     return (
       <Modal
-        title="Edit variables"
+        title="Edit Model"
         visible={showEditor}
+        okButtonProps={{ disabled: disabledDownload }}
         onOk={this.onOkEditor}
         onCancel={toggleEditor}
         okText="Download model"
@@ -115,46 +165,71 @@ export default class Editor extends Component {
             style={{
               marginBottom: 10
             }}
-            message="Variables have been rewritten."
+            message="Model has been rewritten."
             type="success"
           />
         ) : null}
-
         <h2>{title}</h2>
-
-        <div
+        <Tabs
+          defaultActiveKey="1"
           style={{
             maxHeight: 500,
             overflowY: `scroll`
           }}
         >
-          {variables && variables.length > 0 ? (
-            variables.map((v, i) => {
-              return (
-                <div
-                  style={{
-                    marginBottom: 20
-                  }}
-                  key={i}
-                >
-                  <code>{v}</code>
-                  <Input
-                    name={`variable_${v}`}
-                    value={this.state[`variable_${v}`]}
-                    onChange={this.onChange}
-                  />
-                </div>
-              );
-            })
-          ) : (
-            <div>No editable variables found.</div>
-          )}
-        </div>
+          <TabPane tab="Variables" key="1">
+            {variables && variables.length > 0 ? (
+              variables.map((v, i) => {
+                return (
+                  <div
+                    style={{
+                      marginBottom: 20
+                    }}
+                    key={i}
+                  >
+                    <code>{v.name}</code>
+                    <Input
+                      name={`variable_${v.name}`}
+                      placeholder={`${v.value}`}
+                      value={this.state[`variable_${v.name}`]}
+                      onChange={this.onChange}
+                    />
+                  </div>
+                );
+              })
+            ) : (
+              <div>No editable variables found.</div>
+            )}
+          </TabPane>
+          <TabPane tab="Functions" key="2">
+            {functions && functions.length > 0
+              ? functions.map((f, i) => {
+                  return (
+                    <div
+                      style={{
+                        marginBottom: 20
+                      }}
+                      key={i}
+                    >
+                      <code>{`function ${f.name}() {`}</code>
+                      <Input.TextArea
+                        name={`function_${f.name}`}
+                        placeholder={`${f.body}`}
+                        value={this.state[`function_${f.name}`]}
+                        onChange={this.onChange}
+                      />
+                      <code>{`}`}</code>
+                    </div>
+                  );
+                })
+              : "No functions to customize"}
+          </TabPane>
+        </Tabs>
         <Button
           style={{
             marginTop: 10
           }}
-          disabled={disabled}
+          disabled={disabledSave}
           onClick={this.onSave}
         >
           Save
