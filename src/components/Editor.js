@@ -16,8 +16,13 @@ export default class Editor extends Component {
   }
 
   onChange = e => {
+    const input = e.target.name.split("_");
+    const type = input[0]; // functions / variables
+    const name = input[1]; // functionName / variableName
+    const currentTypeState = this.state[type];
+    currentTypeState[name] = e.target.value; // note: do not mutate state directly
     this.setState({
-      [e.target.name]: e.target.value
+      [type]: currentTypeState
     });
   };
 
@@ -25,9 +30,13 @@ export default class Editor extends Component {
     // retrieve doc
     const { variables, functions } = this.state;
     var doc = this.state.doc;
-    for (var i = 0; i < variables.length; i++) {
-      const varName = variables[i].name;
-      const value = this.state[`variable_${varName}`];
+
+    const variableNames = Object.keys(variables);
+    const functionNames = Object.keys(functions);
+
+    for (var i = 0; i < variableNames.length; i++) {
+      const varName = variableNames[i];
+      const value = variables[varName];
       if (!_.isUndefined(value)) {
         // search and replace
         var re = new RegExp(
@@ -38,30 +47,31 @@ export default class Editor extends Component {
       }
     }
 
-    for (var i = 0; i < functions.length; i++) {
-      const funcName = functions[i].name;
-      const value = this.state[`function_${funcName}`];
+    for (var i = 0; i < functionNames.length; i++) {
+      const funcName = functionNames[i];
+      const value = functions[funcName];
       if (!_.isUndefined(value)) {
-        console.log(`${value}`);
         // search and replace
         var re = new RegExp(
           `${EDITABLE_FUNCTIONS_REGEX.replace(`[a-zA-Z]+`, funcName)}`
         ); // regex to search for function name to be replaced in xhtml
-        var res = doc.replace(
-          re,
-          `function $1$2 ${JSON.stringify(value)
+        let formattedString =
+          "  " +
+          JSON.stringify(value)
             .replace(/\\n/g, "\n ")
-            .slice(1, -1)}\n$4`
-        );
+            .slice(1, -1)
+            .replace(/\\"/g, '"');
+        var res = doc.replace(re, `function $1$2${formattedString}\n$4`);
         doc = res;
       }
     }
+
+    console.log(doc);
 
     this.setState({
       isSaved: true,
       doc: doc
     });
-    console.log(doc);
   };
 
   onOkEditor = () => {
@@ -99,36 +109,28 @@ export default class Editor extends Component {
       var re = new RegExp(`${EDITABLE_VARIABLES_REGEX}`, "gm");
 
       var match,
-        variables = [];
-
-      console.log(doc);
+        variables = {};
 
       // find variables and update state
       while ((match = re.exec(doc))) {
-        console.log(match);
-        if (!variables.includes(match[4])) {
-          const variable = {
-            name: match[4],
-            value: match[2]
-          };
-          variables.push(variable);
+        let name = match[4];
+        let value = match[2];
+        if (!Object.keys(variables).includes(match[4])) {
+          variables[name] = value;
         }
       }
 
       var re = new RegExp(`${EDITABLE_FUNCTIONS_REGEX}`, "gm");
 
       var match,
-        functions = [];
+        functions = {};
 
       // find variables and update state
       while ((match = re.exec(doc))) {
-        console.log(match);
-        if (!functions.includes(match[1])) {
-          const func = {
-            name: match[1],
-            body: match[3]
-          };
-          functions.push(func);
+        let name = match[1];
+        let value = match[3];
+        if (!Object.keys(functions).includes(name)) {
+          functions[name] = value;
         }
       }
 
@@ -140,10 +142,6 @@ export default class Editor extends Component {
         isSaved: false
       };
     }
-  }
-
-  componentWillReceiveProps() {
-    this.setModalMeta(this.props.doc);
   }
 
   render() {
@@ -178,8 +176,9 @@ export default class Editor extends Component {
           }}
         >
           <TabPane tab="Variables" key="1">
-            {variables && variables.length > 0 ? (
-              variables.map((v, i) => {
+            {variables && Object.keys(variables).length > 0 ? (
+              Object.keys(variables).map((name, i) => {
+                let value = variables[name];
                 return (
                   <div
                     style={{
@@ -187,11 +186,11 @@ export default class Editor extends Component {
                     }}
                     key={i}
                   >
-                    <code>{v.name}</code>
+                    <code>{name}</code>
                     <Input
-                      name={`variable_${v.name}`}
-                      placeholder={`${v.value}`}
-                      value={this.state[`variable_${v.name}`]}
+                      name={`variables_${name}`}
+                      placeholder={value}
+                      value={value}
                       onChange={this.onChange}
                     />
                   </div>
@@ -202,8 +201,9 @@ export default class Editor extends Component {
             )}
           </TabPane>
           <TabPane tab="Functions" key="2">
-            {functions && functions.length > 0
-              ? functions.map((f, i) => {
+            {functions && Object.keys(functions).length > 0
+              ? Object.keys(functions).map((name, i) => {
+                  let value = functions[name];
                   return (
                     <div
                       style={{
@@ -211,11 +211,11 @@ export default class Editor extends Component {
                       }}
                       key={i}
                     >
-                      <code>{`function ${f.name}() {`}</code>
+                      <code>{`function ${name}() {`}</code>
                       <Input.TextArea
-                        name={`function_${f.name}`}
-                        placeholder={`${f.body}`}
-                        value={this.state[`function_${f.name}`]}
+                        name={`functions_${name}`}
+                        placeholder={value}
+                        value={value}
                         onChange={this.onChange}
                       />
                       <code>{`}`}</code>

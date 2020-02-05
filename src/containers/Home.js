@@ -20,8 +20,6 @@ export default class Home extends Component {
   loadLibrary() {
     const baseUrl = `https://iwant2study.org/lookangejss/EditableSimulations/`;
     axios.get(baseUrl).then(res => {
-      console.log(res.data);
-
       var match,
         results = [],
         libraryData = [];
@@ -152,7 +150,6 @@ export default class Home extends Component {
     const errorMessage = (
       <span style={{ color: `red` }}>Error retrieving source files.</span>
     );
-    console.log(libraryData);
     return (
       <div
         style={{
