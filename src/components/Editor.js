@@ -21,9 +21,12 @@ export default class Editor extends Component {
     const name = input[1]; // functionName / variableName
     const currentTypeState = this.state[type];
     currentTypeState[name] = e.target.value; // note: do not mutate state directly
-    this.setState({
-      [type]: currentTypeState
-    });
+    this.setState(
+      {
+        [type]: currentTypeState
+      },
+      () => console.log(this.state[type])
+    );
   };
 
   onSave = () => {
@@ -39,8 +42,11 @@ export default class Editor extends Component {
       const value = variables[varName];
       if (!_.isUndefined(value)) {
         // search and replace
+        console.log(
+          `${EDITABLE_VARIABLES_REGEX.replace("[a-zA-Z0-9]+", varName)}`
+        );
         var re = new RegExp(
-          `${EDITABLE_VARIABLES_REGEX.replace("[a-zA-Z]+", varName)}`
+          `${EDITABLE_VARIABLES_REGEX.replace("[a-zA-Z0-9]+", varName)}`
         ); // regex to search for variable name to be replaced in xhtml
         var res = doc.replace(re, `$1${value}$3$4`);
         doc = res;
