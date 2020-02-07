@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import _ from "lodash";
-import { Input, Button, Spin, Upload, Icon, message, Card } from "antd";
+import { Input, Button, Spin, Card } from "antd";
 import axios from "axios";
 import Editor from "../components/Editor";
 import JSZip from "jszip";
@@ -217,14 +217,6 @@ export default class Home extends Component {
               width: `50vw`
             }}
           >
-            {/* <Input
-              name="url"
-              onChange={this.onChange}
-              placeholder={`Insert url here`}
-              value={url}
-              autoComplete="off"
-            />
-            */}
             {showError ? errorMessage : null}
 
             <Input
