@@ -13,13 +13,13 @@ export default class Home extends Component {
     this.state = {
       url: "",
       isLoading: false,
-      showEditor: false
+      showEditor: false,
     };
   }
 
   loadLibrary() {
     const baseUrl = `https://iwant2study.org/lookangejss/EditableSimulations/`;
-    axios.get(baseUrl).then(res => {
+    axios.get(baseUrl).then((res) => {
       var match,
         results = [],
         libraryData = [];
@@ -37,15 +37,15 @@ export default class Home extends Component {
           .request({
             url: fileUrl,
             responseType: "arraybuffer",
-            responseEncoding: null
+            responseEncoding: null,
           })
-          .then(res => {
+          .then((res) => {
             var zip = new JSZip();
-            zip.loadAsync(res.data).then(zip => {
+            zip.loadAsync(res.data).then((zip) => {
               zip
                 .file("_metadata.txt")
                 .async("string")
-                .then(s => {
+                .then((s) => {
                   const imageUrl = fileUrl.replace(
                     ".zip",
                     `/${s.match(/logo-image:\s(.+)\n/)[1]}`
@@ -56,10 +56,10 @@ export default class Home extends Component {
                     title,
                     imageUrl,
                     zipFile,
-                    folderName: value
+                    folderName: value,
                   });
                   this.setState({
-                    libraryData: libraryData
+                    libraryData: libraryData,
                   });
                 });
             });
@@ -68,11 +68,11 @@ export default class Home extends Component {
     });
   }
 
-  unpackZipAndSetDoc = rawData => {
+  unpackZipAndSetDoc = (rawData) => {
     var zip = new JSZip();
     zip
       .loadAsync(rawData)
-      .then(zip => {
+      .then((zip) => {
         /* check for valid document files 
         We check for *_Simulation.xhtml because of legacy reasons.
         index.html and *_Simulation.xhtml are identical.
@@ -80,56 +80,56 @@ export default class Home extends Component {
       */
         var xhtmlSimFile = zip.file(/^(\S+_Simulation\.xhtml)$/);
         if (xhtmlSimFile.length > 0) {
-          xhtmlSimFile[0].async("string").then(s => {
+          xhtmlSimFile[0].async("string").then((s) => {
             this.setState({
-              doc: s
+              doc: s,
             });
           });
         } else {
-          zip.file("index.html").then(s => {
+          zip.file("index.html").then((s) => {
             this.setState({
-              doc: s
+              doc: s,
             });
           });
         }
 
         this.setState({
           isLoading: false,
-          zip: zip
+          zip: zip,
         });
       })
-      .catch(e =>
+      .catch((e) =>
         this.setState({
           isLoading: false,
-          showError: true
+          showError: true,
         })
       );
   };
 
-  onChange = e =>
+  onChange = (e) =>
     this.setState({
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     });
 
-  onUpload = e => {
+  onUpload = (e) => {
     var rawData = e.target.files[0];
     this.setState({
       isLoading: true,
-      folderName: rawData.name
+      folderName: rawData.name,
     });
     this.unpackZipAndSetDoc(rawData);
   };
 
   onSubmit = () => {
     this.setState({
-      showEditor: true
+      showEditor: true,
     });
   };
 
   toggleEditor = () =>
     this.setState({
       showEditor: !this.state.showEditor,
-      doc: null
+      doc: null,
     });
 
   componentWillMount() {
@@ -144,7 +144,7 @@ export default class Home extends Component {
       showError,
       zip,
       folderName,
-      libraryData
+      libraryData,
     } = this.state;
     const disabled = _.isNull(doc);
     const errorMessage = (
@@ -158,14 +158,15 @@ export default class Home extends Component {
           justifyContent: `center`,
           alignItems: `center`,
           padding: 10,
-          height: `100%`
+          height: `100%`,
+          width: `100vw`,
         }}
       >
         {/* TODO: move this into components */}
         <div
           style={{
             padding: 10,
-            margin: 20
+            width: `100%`,
           }}
         >
           <h1>iwant2study Library</h1>
@@ -173,7 +174,8 @@ export default class Home extends Component {
             style={{
               display: `flex`,
               flexDirection: `row`,
-              overflowX: `scroll`
+              margin: `auto`,
+              overflowX: `scroll`,
             }}
           >
             {libraryData
@@ -190,13 +192,13 @@ export default class Home extends Component {
                         flexDirection: `column`,
                         alignItems: `center`,
                         width: 200,
-                        height: 250
+                        height: 250,
                       }}
                       onClick={() => {
                         this.unpackZipAndSetDoc(item.zipFile);
                         this.setState({
                           showEditor: true,
-                          folderName: item.folderName
+                          folderName: item.folderName,
                         });
                       }}
                       cover={<img src={item.imageUrl} />}
@@ -214,14 +216,14 @@ export default class Home extends Component {
           <div
             style={{
               minWidth: 200,
-              width: `50vw`
+              width: `50vw`,
             }}
           >
             {showError ? errorMessage : null}
 
             <Input
               style={{
-                marginTop: 20
+                marginTop: 20,
               }}
               type="file"
               accept=".zip"
@@ -231,7 +233,7 @@ export default class Home extends Component {
 
           <Button
             style={{
-              margin: 20
+              margin: 20,
             }}
             onClick={this.onSubmit}
             disabled={disabled}
