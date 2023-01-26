@@ -6,7 +6,8 @@ What are the server requirements to run this project
 
 
 Prototype deployment
-https://ejss-browser-editor.herokuapp.com/
+https://ejss-browser-editor-web.onrender.com/
+https://ejss-browser-editor.herokuapp.com/ died as it requires subscription after 2023
 
 Documentation use by teachers
 https://iwant2study.org/ospsg/index.php/related-sites/959-ejss-sim-web-editor-by-raphael-yee
@@ -16,5 +17,5 @@ What the file look for ?
 in the Variable the tab must be name EditableVariable
 in the custom function tab , must be name EditableFunction
 it only searches files in this location https://iwant2study.org/lookangejss/EditableSimulations/
-else if not, you must use EJSS editor/toolkit to edit the tab yourself before uploading here https://ejss-browser-editor.herokuapp.com/ for the editableVariable to be pass on to be editable.
+else if not, you must use EJSS editor/toolkit to edit the tab yourself before uploading here https://ejss-browser-editor-web.onrender.com/   for the editableVariable to be pass on to be editable.
 
