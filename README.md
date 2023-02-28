@@ -5,8 +5,8 @@ With the ejss-browser-editor, users can edit existing EJSS simulations. The edit
 The ejss-browser-editor is built using the ReactJS that provides many advanced features for code editing.
 Overall, the ejss-browser-editor makes it easier for educators and students to modify EJS simulations, without the need for a separate code editor or programming environment.
 
-What are the server requirements to run this project
-.....?? please add on
+Steps to deploy the static webpage
+https://weelookang.blogspot.com/2023/01/moving-from-heroku-to-render.html
 
 
 Prototype deployment
