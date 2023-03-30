@@ -93,6 +93,15 @@ export default class Home extends Component {
           });
         }
 
+        var s = zip.file(/^(.+\.ejss)$/);
+        if (s.length > 0) {
+          s[0].async("string").then((s) => {
+            this.setState({
+              ejssFile: s,
+            });
+          });
+        }
+
         this.setState({
           isLoading: false,
           zip: zip,
@@ -130,6 +139,7 @@ export default class Home extends Component {
     this.setState({
       showEditor: !this.state.showEditor,
       doc: null,
+      ejssFile: null,
     });
 
   componentWillMount() {
@@ -145,8 +155,9 @@ export default class Home extends Component {
       zip,
       folderName,
       libraryData,
+      ejssFile,
     } = this.state;
-    const disabled = _.isNull(doc);
+    const disabled = _.isNull(doc) || _.isNull(ejssFile);
     const errorMessage = (
       <span style={{ color: `red` }}>Error retrieving source files.</span>
     );
@@ -241,11 +252,12 @@ export default class Home extends Component {
             Get Model
           </Button>
 
-          {doc ? (
+          {doc && ejssFile ? (
             <Editor
               showEditor={showEditor}
               toggleEditor={this.toggleEditor}
               doc={doc}
+              ejssFile={ejssFile}
               zip={zip}
               folderName={folderName}
             />

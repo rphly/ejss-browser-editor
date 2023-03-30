@@ -4,18 +4,19 @@ import { Input, Button, Alert, Modal, Tabs } from "antd";
 import { saveAs } from "file-saver";
 import {
   EDITABLE_VARIABLES_REGEX,
-  EDITABLE_FUNCTIONS_REGEX
+  EDITABLE_FUNCTIONS_REGEX,
 } from "../utils/constants";
+import iconv from "iconv-lite";
 const { TabPane } = Tabs;
 
 export default class Editor extends Component {
   // TODO: spin this out into a route /editor/{simId}
   constructor(props) {
     super();
-    this.state = this.setModalMeta(props.doc);
+    this.state = this.setModalMeta(props.doc, props.ejssFile);
   }
 
-  onChange = e => {
+  onChange = (e) => {
     const input = e.target.name.split("_");
     const type = input[0]; // functions / variables
     const name = input[1]; // functionName / variableName
@@ -23,7 +24,7 @@ export default class Editor extends Component {
     currentTypeState[name] = e.target.value; // note: do not mutate state directly
     this.setState(
       {
-        [type]: currentTypeState
+        [type]: currentTypeState,
       },
       () => console.log(this.state[type])
     );
@@ -72,11 +73,9 @@ export default class Editor extends Component {
       }
     }
 
-    console.log(doc);
-
     this.setState({
       isSaved: true,
-      doc: doc
+      doc: doc,
     });
   };
 
@@ -101,12 +100,12 @@ export default class Editor extends Component {
       zip.file(`${name.split(".")[0]}_Simulation.xhtml`, docBlob);
     }
 
-    zip.generateAsync({ type: "blob" }).then(blob => {
+    zip.generateAsync({ type: "blob" }).then((blob) => {
       saveAs(blob, `${folderName}`);
     });
   };
 
-  setModalMeta(doc) {
+  setModalMeta(doc, ejssFile) {
     if (!_.isNull(doc)) {
       // parse html
       var title = doc.match(/<title>(.*?)<\/title>/)[1] || "undefined title";
@@ -145,10 +144,32 @@ export default class Editor extends Component {
         functions: functions,
         title: title,
         doc: doc,
-        isSaved: false
+        isSaved: false,
+        ejssFile: ejssFile,
       };
     }
   }
+
+  findCommentInXML = (variable) => {
+    var parser = new DOMParser();
+    var xDoc = parser.parseFromString(
+      iconv.decode(new Buffer(this.state.ejssFile.slice(3)), "utf16"),
+      "text/xml"
+    );
+
+    var x = xDoc.getElementsByTagName("Variable");
+
+    for (var i = 0; i < x.length; i++) {
+      let variableName = x[i].firstElementChild.childNodes[0].nodeValue;
+      if (variableName === variable) {
+        let nodeName = x[i].lastElementChild.nodeName;
+
+        if (nodeName == "Comment") {
+          return x[i].lastElementChild.childNodes[0].nodeValue;
+        }
+      }
+    }
+  };
 
   render() {
     const { variables, isSaved, title, functions } = this.state;
@@ -167,7 +188,7 @@ export default class Editor extends Component {
         {isSaved ? (
           <Alert
             style={{
-              marginBottom: 10
+              marginBottom: 10,
             }}
             message="Model has been rewritten."
             type="success"
@@ -178,21 +199,26 @@ export default class Editor extends Component {
           defaultActiveKey="1"
           style={{
             maxHeight: 500,
-            overflowY: `scroll`
+            overflowY: `scroll`,
           }}
         >
           <TabPane tab="Variables" key="1">
             {variables && Object.keys(variables).length > 0 ? (
               Object.keys(variables).map((name, i) => {
                 let value = variables[name];
+                let comment = this.findCommentInXML(name);
                 return (
                   <div
                     style={{
-                      marginBottom: 20
+                      marginBottom: 20,
                     }}
                     key={i}
                   >
-                    <code>{name}</code>
+                    <b>
+                      <code>{name}</code>
+                    </b>
+                    <br />
+                    {comment ? <i>{comment}</i> : null}
                     <Input
                       name={`variables_${name}`}
                       placeholder={value}
@@ -213,7 +239,7 @@ export default class Editor extends Component {
                   return (
                     <div
                       style={{
-                        marginBottom: 20
+                        marginBottom: 20,
                       }}
                       key={i}
                     >
@@ -233,7 +259,7 @@ export default class Editor extends Component {
         </Tabs>
         <Button
           style={{
-            marginTop: 10
+            marginTop: 10,
           }}
           disabled={disabledSave}
           onClick={this.onSave}
