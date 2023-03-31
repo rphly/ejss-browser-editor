@@ -6,7 +6,8 @@ What are the server requirements to run this project
 
 
 Prototype deployment
-https://ejss-browser-editor.herokuapp.com/
+https://ejss-6l7k.onrender.com/  
+
 
 Documentation use by teachers
 https://iwant2study.org/ospsg/index.php/related-sites/959-ejss-sim-web-editor-by-raphael-yee
